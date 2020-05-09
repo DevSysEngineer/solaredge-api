@@ -1,0 +1,4 @@
+.DS_Store
+/vendor/
+/assets/Data/
+api_key.key

@@ -1,0 +1,12 @@
+{
+    "name": "kvansteijn/solaredge-api",
+    "description": "Framework for SolarEdge API",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Kevin van Steijn",
+            "email": "info@kvansteijn.nl"
+        }
+    ],
+    "minimum-stability": "stable"
+}
