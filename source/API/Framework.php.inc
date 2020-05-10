@@ -3,6 +3,7 @@
 namespace SolarEgdeAPI\API;
 
 require 'URI.php.inc';
+require 'Location.php.inc';
 require 'Energy.php.inc';
 require 'Site.php.inc';
 

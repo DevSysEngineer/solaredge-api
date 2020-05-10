@@ -8,5 +8,8 @@
             "email": "info@kvansteijn.nl"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "require": {
+        "longman/telegram-bot": "^0.62.0"
+    }
 }

@@ -1,16 +1,16 @@
 <?php
 
-require '../source/API/Framework.php.inc';
+require __DIR__ . '/../source/API/Framework.php.inc';
 
 use SolarEgdeAPI\API;
 
 /* Check if file key exists */
-if (!file_exists('../api_key.key')) {
+if (!file_exists(__DIR__ . '/../config/api_key.key')) {
     exit('API key not found' . PHP_EOL);
 }
 
 /* Try to get content */
-$apiKey = file_get_contents('../api_key.key');
+$apiKey = file_get_contents(__DIR__ . '/../config/api_key.key');
 if ($apiKey === FALSE ) {
     exit('Failed to retrieve key' . PHP_EOL);
 }
@@ -25,36 +25,64 @@ if ($sites == NUll) {
     exit($framework->getLastError());
 }
 
+/* Loop each site */
 foreach ($sites as $site) {
     /* Get data period */
-    $dataPeriod = $site->getDataPeriod();
-    $endDateObject = new DateTime($dataPeriod->endDate);
+    $dataPeriodObject = $site->getDataPeriodObject();
+    $startDate = $dataPeriodObject->startDate->format('Y-m-d');
+    $endDate = $dataPeriodObject->endDate->format('Y-m-d');
 
     /* Set default info */
     echo 'Site: ' . $site->getName() . PHP_EOL;
-    echo 'Data period from: ' . $dataPeriod->startDate . ' until ' . $dataPeriod->endDate . PHP_EOL;
+    echo 'Data period from: ' . $startDate . ' until ' . $endDate . PHP_EOL;
 
     /* Split data */
     echo '----------------------------------------------' . PHP_EOL;
 
     /* Create energy list */
-    echo 'Energy year list:' . PHP_EOL;
-    $energyList = $site->getEnergy($dataPeriod->startDate, $dataPeriod->endDate);
+    echo 'Energy year:' . PHP_EOL;
+    $energyList = $site->getEnergy($startDate, $endDate);
     if ($energyList !== NULL) {
         foreach ($energyList as $energy) {
-            echo $energy->getDate() . ': ' . $energy->getFormatValue(API\Energy::UNIT_MWH) . PHP_EOL;
+            echo $energy->getDateObject()->format('Y') . ': ' . $energy->getFormatValue(API\Energy::UNIT_MWH) . PHP_EOL;
         }
     }
 
     /* Split data */
     echo '----------------------------------------------' . PHP_EOL;
 
+
+    /* Try to get correct start en end date */
+    $mEndDateObject = clone $dataPeriodObject->endDate;
+    $mEndDateObject->modify('first day of this month');
+    $firstDayOfMonth = $mEndDateObject->format('Y-m-d');
+    $mEndDateObject->modify('last day of this month');
+    $lastDayOfMonth = $mEndDateObject->format('Y-m-d');
+
+    /* Create month text */
+    $monthText = '';
+    $monthTotal = 0.0;
+    $energyList = $site->getEnergy($firstDayOfMonth, $lastDayOfMonth, API\Site::TIME_UNIT_WEEK);
+    if ($energyList !== NULL) {
+        foreach ($energyList as $energy) {
+            $monthTotal += $energy->getValue(API\Energy::UNIT_KWH);
+            $monthText .= 'Week ' . $energy->getDateObject()->format('W') . ': ' . $energy->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
+        }
+    }
+
+     /* Create energy list */
+    echo 'Energy this month (' . API\Energy::ConvertFormatValue($monthTotal, API\Energy::UNIT_KWH) . '):' . PHP_EOL;
+    echo $monthText;
+
+    /* Split data */
+    echo '----------------------------------------------' . PHP_EOL;
+
     /* Try to get information about yesterday */
-    $endDateObject->modify('-1 day');
-    $yesterday = $endDateObject->format('Y-m-d');
+    $yEndDateObject = clone $dataPeriodObject->endDate;
+    $yEndDateObject->modify('-1 day');
+    $yesterday = $yEndDateObject->format('Y-m-d');
     $energyList = $site->getEnergy($yesterday, $yesterday, API\Site::TIME_UNIT_DAY);
     if (!empty($energyList)) {
-        echo 'Yesterday energy: ' . $energyList[0]->getDate() . ': ' . $energyList[0]->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
+        echo 'Yesterday energy (' . $energyList[0]->getDateObject()->format('Y-m-d') . '): ' . $energyList[0]->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
     }
 }
-

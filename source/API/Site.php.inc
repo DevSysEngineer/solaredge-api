@@ -6,6 +6,7 @@ class Site {
 
     const TIME_UNIT_YEAR = 'YEAR';
     const TIME_UNIT_DAY = 'DAY';
+    const TIME_UNIT_WEEK = 'WEEK';
 
     protected $_id = NULL;
     protected $_name = NULL;
@@ -17,7 +18,7 @@ class Site {
     protected $_ptoDate = NULL;
     protected $_notes = NULL;
     protected $_type = NULL;
-
+    protected $_location = NULL;
     protected $_uris = [];
 
     public function __construct(\stdClass $site) {
@@ -31,6 +32,7 @@ class Site {
         $this->_ptoDate = $site->ptoDate;
         $this->_notes = $site->notes;
         $this->_type = $site->type;
+        $this->_location = new Location($site->location);
 
         /* Get URLS */
         foreach ($site->uris as $key => $path) {
@@ -38,11 +40,11 @@ class Site {
         }
     }
 
-    public function getName() {
+    public function getName() : ?string {
         return $this->_name;
     }
 
-    public function getDataPeriod() {
+    public function getDataPeriod() : ?\stdClass {
         /* Check if uri exist */
         if (empty($this->_uris['DATA_PERIOD'])) {
             return NULL;
@@ -58,7 +60,23 @@ class Site {
         return $output->dataPeriod;
     }
 
-    public function getEnergy($startDate, $endDate, $timeUnit = self::TIME_UNIT_YEAR) {
+    public function getDataPeriodObject() : ?\stdClass {
+        /* Try to get object */
+        $object = $this->getDataPeriod();
+        if ($object === NULL) {
+            return NULL;
+        }
+
+        /* Convert data */
+        $timeZone = $this->_location->getTimeZone();
+        $object->startDate = new \DateTime($object->startDate, $timeZone);
+        $object->endDate = new \DateTime($object->endDate, $timeZone);
+
+        /* Return date objecr */
+        return $object;
+    }
+
+    public function getEnergy($startDate, $endDate, $timeUnit = self::TIME_UNIT_YEAR) : ?array {
         /* Do request */
         $output = Framework::DoRequest('site', $this->_id, 'energy', ['startDate' => $startDate, 'endDate' => $endDate, 'timeUnit' => $timeUnit]);
         if ($output === NULL) {
@@ -68,7 +86,7 @@ class Site {
         /* Get energies */
         $energyList = [];
         foreach ($output->energy->values as $energy) {
-            $energyList[] = new Energy($output->energy->unit, $output->energy->measuredBy, $energy);
+            $energyList[] = new Energy($output->energy->unit, $output->energy->measuredBy, $energy, $this->_location->getTimeZone());
         }
 
         /* Return result */

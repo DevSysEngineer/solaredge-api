@@ -13,24 +13,17 @@ class Energy {
     protected $_measuredBy = NULL;
     protected $_date = NULL;
     protected $_value = NULL;
+    protected $_timeZone = NULL;
 
-    public function __construct(string $unit, string $measuredBy, \stdClass $energy) {
+    public function __construct(string $unit, string $measuredBy, \stdClass $energy, \DateTimeZone $timeZone) {
         $this->_unit = $this->_translateUnitToInt($unit);
         $this->_measuredBy = $measuredBy;
         $this->_date = $energy->date;
         $this->_value = intval($energy->value);
+        $this->_timeZone = $timeZone;
     }
 
-    protected function _translateUnitToInt(string $unit) : int {
-        switch ($unit) {
-            case 'Wh':
-                return self::UNIT_WH;
-            default:
-                return self::UNIT_UNKNOWN;
-        }
-    }
-
-    protected function _translateIntToUnit(int $unit) : string {
+    protected static function _TranslateIntToUnit(int $unit) : string {
         switch ($unit) {
             case self::UNIT_WH:
                 return 'Wh';
@@ -43,11 +36,28 @@ class Energy {
         }
     }
 
+    public static function ConvertFormatValue(float $value, int $unit, int $round = 2) {
+        return number_format(round($value, $round), 2, '.', '') . self::_TranslateIntToUnit($unit);
+    }
+
+    protected function _translateUnitToInt(string $unit) : int {
+        switch ($unit) {
+            case 'Wh':
+                return self::UNIT_WH;
+            default:
+                return self::UNIT_UNKNOWN;
+        }
+    }
+
     public function getDate() : ?string {
         return $this->_date;
     }
 
-    public function getFormatValue(int $unit = self::UNIT_WH, int $round = 2) : ?string {
+    public function getDateObject() : \DateTime {
+        return new \DateTime($this->_date, $this->_timeZone);
+    }
+
+    public function getValue(int $unit = self::UNIT_WH) : ?float {
         /* Check if value or unit is NULL */
         if ($this->_value === NULL || $this->_unit === NULL) {
             return NULL;
@@ -55,7 +65,7 @@ class Energy {
 
         /* Check if unit is the same */
         if ($unit === $this->_unit) {
-            return strval(round($this->_value, $round)) . $this->_translateIntToUnit($this->_unit);
+            return $this->_value;
         }
 
         /* Convert value */
@@ -71,7 +81,18 @@ class Energy {
                 $value = $this->_value;
         }
 
-        /* Return value */
-        return strval(round($value, $round)) . $this->_translateIntToUnit($unit);
+        /* Return correct value */
+        return floatval($value);
+    }
+
+    public function getFormatValue(int $unit = self::UNIT_WH, int $round = 2) : ?string {
+        /* Check if value is correcrt */
+        $value = $this->getValue($unit);
+        if ($value === NULL) {
+            return NULL;
+        }
+
+        /* Convert value */
+        return self::ConvertFormatValue($value, $unit, $round);
     }
 }
