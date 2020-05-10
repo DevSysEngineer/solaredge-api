@@ -54,3 +54,5 @@ Send automatic a message to your telegram account.
 8. Navigate to example dir in you shell: `cd example`.
 9. Run telegram_send_message.php.php: `php telegram_send_message.php.php`.
 10. Check if you received any messages.
+11. Create a cronjob: `0 8 * * * /usr/bin/php {LOCATION}/example/telegram_send_message.php >/dev/null 2>&1`
+13. You will receive everyday at 8:00AM a message with daily report.
