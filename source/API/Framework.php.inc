@@ -6,6 +6,7 @@ require 'URI.php.inc';
 require 'Location.php.inc';
 require 'Energy.php.inc';
 require 'Site.php.inc';
+require __DIR__ . '/../Diagram/Bar.php.inc';
 
 class Framework {
 

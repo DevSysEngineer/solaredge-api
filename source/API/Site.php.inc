@@ -2,6 +2,8 @@
 
 namespace SolarEgdeAPI\API;
 
+use SolarEgdeAPI\Diagram;
+
 class Site {
 
     const TIME_UNIT_YEAR = 'YEAR';
@@ -91,5 +93,25 @@ class Site {
 
         /* Return result */
         return $energyList;
+    }
+
+    public function convertToBarDiagram(string $path, array $energyList, int $width = 400, int $heigth = 300) : bool {
+        /* Create object */
+        $bar = new Diagram\Bar($width, $heigth);
+
+        /* Add energy list to diagram */
+        foreach ($energyList as $energy) {
+            if (!$energy instanceof Energy) {
+                continue;
+            }
+
+            /* Apply data */
+            $value = $energy->getValue(Energy::UNIT_KWH);
+            $friendlyValue = Energy::ConvertFormatValue($value, Energy::UNIT_KWH);
+            $bar->addData($value, $friendlyValue);
+        }
+
+        /* Build diagram */
+        return $bar->build($path);
     }
 }

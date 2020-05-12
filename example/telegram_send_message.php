@@ -54,6 +54,7 @@ try {
         $dataPeriodObject = $site->getDataPeriodObject();
         $startDate = $dataPeriodObject->startDate->format('Y-m-d');
         $endDate = $dataPeriodObject->endDate->format('Y-m-d');
+        $filepath = __DIR__ . '/../exports/' . $endDate . '.png';
 
         /* Set default info */
         $text ='Site: ' . $site->getName() . PHP_EOL;
@@ -75,7 +76,6 @@ try {
         /* Split data */
         $text .='--------------------------' . PHP_EOL;
 
-
         /* Try to get correct start en end date */
         $mEndDateObject = clone $dataPeriodObject->endDate;
         $mEndDateObject->modify('first day of this month');
@@ -88,10 +88,14 @@ try {
         $monthTotal = 0.0;
         $energyList = $site->getEnergy($firstDayOfMonth, $lastDayOfMonth, API\Site::TIME_UNIT_WEEK);
         if ($energyList !== NULL) {
+            /* Convvert to text */
             foreach ($energyList as $energy) {
                 $monthTotal += $energy->getValue(API\Energy::UNIT_KWH);
                 $monthText .= 'Week ' . $energy->getDateObject()->format('W') . ': ' . $energy->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
             }
+
+            /* Export also to PNG */
+            $site->convertToBarDiagram($filepath, $energyList);
         }
 
          /* Create energy list */
@@ -111,11 +115,20 @@ try {
         }
 
         /* Try to send messages */
+        $telegramPhoto = file_exists($filepath) ? TelegramBot\Request::encodeFile($filepath) : NULL;
         if (!empty($telegramConfig['chatIds']) && is_array($telegramConfig['chatIds'])) {
             foreach ($telegramConfig['chatIds'] as $chatId) {
-                 $result = TelegramBot\Request::sendMessage([
+                $result = TelegramBot\Request::sendMessage([
                     'chat_id' => $chatId,
                     'text' => $text,
+                ]);
+            }
+
+            /* Check if export file exists */
+            if ($telegramPhoto !== NULL) {
+                $result = TelegramBot\Request::sendPhoto([
+                    'chat_id' => $chatId,
+                    'photo' => $telegramPhoto,
                 ]);
             }
         }

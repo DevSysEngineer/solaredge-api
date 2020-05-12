@@ -64,10 +64,14 @@ foreach ($sites as $site) {
     $monthTotal = 0.0;
     $energyList = $site->getEnergy($firstDayOfMonth, $lastDayOfMonth, API\Site::TIME_UNIT_WEEK);
     if ($energyList !== NULL) {
+        /* Convvert to text */
         foreach ($energyList as $energy) {
             $monthTotal += $energy->getValue(API\Energy::UNIT_KWH);
             $monthText .= 'Week ' . $energy->getDateObject()->format('W') . ': ' . $energy->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
         }
+
+        /* Export also to PNG */
+        $site->convertToBarDiagram(__DIR__ . '/../exports/' . $endDate . '.png', $energyList);
     }
 
      /* Create energy list */
