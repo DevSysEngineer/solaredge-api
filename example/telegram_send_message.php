@@ -99,7 +99,7 @@ try {
         }
 
          /* Create energy list */
-        $text .='Energy this month (' . API\Energy::ConvertFormatValue($monthTotal, API\Energy::UNIT_KWH) . '):' . PHP_EOL;
+        $text .= 'Energy this month (' . API\Energy::ConvertFormatValue($monthTotal, API\Energy::UNIT_KWH) . '):' . PHP_EOL;
         $text .= $monthText;
 
         /* Split data */
@@ -111,25 +111,26 @@ try {
         $yesterday = $yEndDateObject->format('Y-m-d');
         $energyList = $site->getEnergy($yesterday, $yesterday, API\Site::TIME_UNIT_DAY);
         if (!empty($energyList)) {
-            $text .='Yesterday energy (' . $energyList[0]->getDateObject()->format('Y-m-d') . '): ' . $energyList[0]->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
+            $text .= 'Yesterday energy (' . $energyList[0]->getDateObject()->format('Y-m-d') . '): ' . $energyList[0]->getFormatValue(API\Energy::UNIT_KWH) . PHP_EOL;
         }
 
         /* Try to send messages */
         $telegramPhoto = file_exists($filepath) ? TelegramBot\Request::encodeFile($filepath) : NULL;
         if (!empty($telegramConfig['chatIds']) && is_array($telegramConfig['chatIds'])) {
             foreach ($telegramConfig['chatIds'] as $chatId) {
+                /* Send meessage */
                 $result = TelegramBot\Request::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => $text,
+                    'text' => $text
                 ]);
-            }
 
-            /* Check if export file exists */
-            if ($telegramPhoto !== NULL) {
-                $result = TelegramBot\Request::sendPhoto([
-                    'chat_id' => $chatId,
-                    'photo' => $telegramPhoto,
-                ]);
+                /* Check if export file exists */
+                if ($telegramPhoto !== NULL) {
+                    $result = TelegramBot\Request::sendPhoto([
+                        'chat_id' => $chatId,
+                        'photo' => $telegramPhoto
+                    ]);
+                }
             }
         }
     }
