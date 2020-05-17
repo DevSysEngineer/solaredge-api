@@ -71,7 +71,7 @@ foreach ($sites as $site) {
         }
 
         /* Export also to PNG */
-        $site->convertToBarDiagram(__DIR__ . '/../exports/' . $endDate . '.png', $energyList);
+        $site->convertToBarDiagram(__DIR__ . '/../exports/' . $endDate . '.png', $energyList, '\W\k W');
     }
 
      /* Create energy list */

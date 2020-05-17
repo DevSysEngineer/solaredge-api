@@ -95,7 +95,7 @@ class Site {
         return $energyList;
     }
 
-    public function convertToBarDiagram(string $path, array $energyList, int $width = 400, int $heigth = 300) : bool {
+    public function convertToBarDiagram(string $path, array $energyList, string $dateFormat, int $width = 400, int $heigth = 300) : bool {
         /* Create object */
         $bar = new Diagram\Bar($width, $heigth);
 
@@ -108,7 +108,7 @@ class Site {
             /* Apply data */
             $value = $energy->getValue(Energy::UNIT_KWH);
             $friendlyValue = Energy::ConvertFormatValue($value, Energy::UNIT_KWH);
-            $bar->addData($value, $friendlyValue);
+            $bar->addData($value, $friendlyValue, $energy->getDateObject()->format($dateFormat));
         }
 
         /* Build diagram */
