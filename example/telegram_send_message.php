@@ -95,7 +95,7 @@ try {
             }
 
             /* Export also to PNG */
-            $site->convertToBarDiagram($filepath, $energyList);
+            $site->convertToBarDiagram($filepath, $energyList, '\W\k W');
         }
 
          /* Create energy list */
