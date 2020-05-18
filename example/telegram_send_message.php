@@ -115,8 +115,8 @@ try {
         }
 
         /* Try to send messages */
-        $telegramPhoto = file_exists($filepath) ? TelegramBot\Request::encodeFile($filepath) : NULL;
         if (!empty($telegramConfig['chatIds']) && is_array($telegramConfig['chatIds'])) {
+            $fileExists = file_exists($filepath);
             foreach ($telegramConfig['chatIds'] as $chatId) {
                 /* Send meessage */
                 $result = TelegramBot\Request::sendMessage([
@@ -125,6 +125,7 @@ try {
                 ]);
 
                 /* Check if export file exists */
+                $telegramPhoto = $fileExists ? TelegramBot\Request::encodeFile($filepath) : NULL;
                 if ($telegramPhoto !== NULL) {
                     $result = TelegramBot\Request::sendPhoto([
                         'chat_id' => $chatId,
